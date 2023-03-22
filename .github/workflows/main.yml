@@ -1,0 +1,32 @@
+name: Branching Conditions
+
+on:
+  pull_request:
+    types: [ opened ]
+
+
+jobs:
+  branch-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Check Branch
+        run: |
+          if [ "$GITHUB_BASE_REF" == "release/production" ]; then
+            if [ "$GITHUB_HEAD_REF" != "release/staging" ]; then
+              echo "Only staging branch can merge into main branch"
+              exit 1
+            fi
+          fi
+          if [ "$GITHUB_BASE_REF" == "release/staging" ]; then
+            if [ "$GITHUB_HEAD_REF" != "release/development" ]; then
+              echo "Only development branch can merge into staging branch"
+              exit 1
+            fi
+          fi
+          if [ "$GITHUB_HEAD_REF" == "release/production" ] || [ "$GITHUB_HEAD_REF" == "release/staging" ] && [ "$GITHUB_BASE_REF" == "release/development" ]; then
+            echo "Other than main and staging branch any branch can merge with development branch"
+            exit 1
+          fi
